@@ -869,7 +869,7 @@ export default function Home() {
         )}
 
         {/* SCROLLABLE VIEWPORT CONTENT */}
-        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none pb-20 p-3 space-y-3" id="main-viewport">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none pb-[calc(6rem+env(safe-area-inset-bottom,0px))] p-3 space-y-3" id="main-viewport">
           <AnimatePresence mode="wait">
             
             {/* TUNER TAB */}
@@ -1462,7 +1462,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 15 }}
-              className="absolute bottom-[66px] left-3.5 right-3.5 bg-[#1C140E] border border-amber-500/25 backdrop-blur-md px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-1.5 z-40 shadow-lg shadow-black/40"
+              className="absolute bottom-[calc(4.5rem+16px+env(safe-area-inset-bottom,0px))] left-3.5 right-3.5 bg-[#1C110C]/95 border border-amber-500/25 backdrop-blur-md px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-1.5 z-40 shadow-lg shadow-black/40"
               id="offline-toast"
             >
               <div className="flex items-center gap-2">
@@ -1479,9 +1479,9 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
-
+ 
         {/* BOTTOM TAB LIST BAR */}
-        <nav className="absolute bottom-0 left-0 right-0 h-14 bg-[#12141A]/95 backdrop-blur-md border-t border-[#2A2D35]/50 flex items-center justify-around z-45 pb-safe select-none">
+        <nav className="absolute bottom-0 left-0 right-0 h-[calc(4.5rem+env(safe-area-inset-bottom,0px))] bg-[#12141A]/95 backdrop-blur-md border-t border-[#2A2D35]/50 flex items-center justify-around z-45 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] select-none">
           <button
             onClick={() => setActiveTab("tuner")}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-colors duration-150 ${
@@ -1519,10 +1519,10 @@ export default function Home() {
             <span className="text-[9px] font-medium font-sans tracking-tight">AI Coach</span>
           </button>
         </nav>
-
+ 
         {/* INTEGRATED INPUT LEVEL VU METER */}
         {isListening && (
-          <div className="absolute bottom-14 left-0 right-0 h-0.5 bg-zinc-950/45 z-30">
+          <div className="absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 h-0.5 bg-zinc-950/45 z-30">
             <div 
               style={{ width: `${Math.min(100, Math.floor(micRms * 1200))}%` }}
               className="h-full bg-gradient-to-r from-[#F27D26] to-[#00FF41] transition-all duration-75" 
