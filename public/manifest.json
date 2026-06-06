@@ -1,0 +1,22 @@
+{
+  "name": "Vocal Key & Guitar Coach",
+  "short_name": "Vocal Coach",
+  "description": "Listen to your singing, measure pitch, find scales, and get guitar chords with AI-powered coaching.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/vocalcoach/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/vocalcoach/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

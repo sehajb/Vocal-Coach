@@ -1,0 +1,6 @@
+{
+  "name": "Vocal Key & Guitar Coach",
+  "description": "Listen to your singing in real time, detect pitch, estimate the scale/key, suggest compatible guitar chords (including capo options), and explain music theory via Gemini.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
