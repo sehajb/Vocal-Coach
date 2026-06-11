@@ -536,6 +536,13 @@ export default function Home() {
   // Key estimation variables
   const [noteEvents, setNoteEvents] = React.useState<NoteEvent[]>([]);
 
+  // Unique note names captured during the singing session
+  const sungSongNotes = React.useMemo(() => {
+    if (noteEvents.length === 0) return [];
+    const uniqueIndices = Array.from(new Set(noteEvents.map(e => e.noteIndex)));
+    return uniqueIndices.sort((a, b) => a - b).map(idx => NOTE_NAMES[idx]);
+  }, [noteEvents]);
+
   // Active scale estimation source
   // "tuner" -> Live pitch history (from NoteEvents on Tuner tab)
   // "manual" -> Manual key override picker
@@ -544,7 +551,7 @@ export default function Home() {
 
   // Compute key estimate whenever note events update via useMemo (avoids cascading render warnings)
   const estimatedKey = React.useMemo(() => {
-    if (noteEvents.length < 8) {
+    if (noteEvents.length < 4) {
       return null;
     }
 
@@ -720,11 +727,11 @@ export default function Home() {
     };
   }, [isListening]);
 
-  // Clean note events rolling window (keep last 8 seconds)
+  // Clean note events rolling window (keep last 120 seconds to cover complete singing of a song)
   React.useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setNoteEvents((prev) => prev.filter((evt) => now - evt.timestamp < 8000));
+      setNoteEvents((prev) => prev.filter((evt) => now - evt.timestamp < 120000));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -1530,19 +1537,95 @@ export default function Home() {
                         </div>
                       </div>
                     ) : (
-                      /* LIVE VOCAL LIVE PITCH INFO */
-                      <div className="bg-[#0D0E11] border border-[#2A2D35]/30 rounded-lg p-2.5 text-left text-[10px]">
-                        <span className="text-[7.5px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
-                          Microphone Live Capture Status
-                        </span>
+                      /* LIVE VOCAL LIVE PITCH INFO WITH INTEGRATIVE SONG METRICS */
+                      <div className="bg-[#0F1115] border border-[#2A2D35]/65 rounded-xl p-3.5 space-y-3 text-left">
+                        <div className="flex justify-between items-center pb-2 border-b border-[#2A2D35]/35">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#00FF41] animate-pulse" />
+                            <span className="text-[9px] font-black text-[#00FF41] uppercase tracking-wider">
+                              Real-Time Song Tuner Sync
+                            </span>
+                          </div>
+                          {isListening ? (
+                            <span className="text-[7.5px] font-mono font-bold text-[#00FF41] bg-[#00FF41]/10 px-1.5 py-0.5 rounded border border-[#00FF41]/25 uppercase tracking-wide">
+                              🎤 Live Tracking Song
+                            </span>
+                          ) : (
+                            <span className="text-[7.5px] font-mono text-zinc-500 bg-zinc-900 border border-zinc-950 px-1.5 py-0.5 rounded uppercase">
+                              Offline/Muted
+                            </span>
+                          )}
+                        </div>
+
                         {estimatedKey ? (
-                          <p className="text-zinc-350 leading-snug">
-                            Vocal core mapping completed! Singing centered in <b className="text-white">{formatFlatName(estimatedKey.primaryName)}</b>, with {estimatedKey.confidence} confidence rating. We captured {noteEvents.length} notes successfully.
-                          </p>
+                          <div className="space-y-3">
+                            <div className="space-y-1">
+                              <p className="text-[10.5px] text-zinc-300 leading-relaxed font-sans">
+                                We mapped your song melody centered around the key of <b className="text-white font-extrabold">{formatFlatName(estimatedKey.primaryName)}</b>, with {estimatedKey.confidence} confidence rating.
+                              </p>
+                              <p className="text-[9px] text-[#F27D26] font-mono font-bold leading-normal">
+                                🎵 Instantly displaying matching Bollywood/Pop melodies and chords below!
+                              </p>
+                            </div>
+
+                            {/* Captured Song Notes Roll */}
+                            {sungSongNotes.length > 0 && (
+                              <div className="pt-2 border-t border-[#2A2D35]/40 space-y-1.5">
+                                <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest block font-semibold">
+                                  Captured Song Note Register ({sungSongNotes.length} Notes):
+                                </span>
+                                <div className="flex flex-wrap gap-1">
+                                  {sungSongNotes.map((note, nIdx) => (
+                                    <span 
+                                      key={nIdx}
+                                      className="px-1.5 py-0.5 rounded text-[8.5px] font-mono font-black bg-[#171920] border border-[#2A2D35]/70 text-[#00FF41] animate-fade-in"
+                                    >
+                                      {formatFlatName(note)}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Current Sing State indicator */}
+                            {currentPitch && (
+                              <div className="bg-[#15171C]/85 border border-[#2A2D35]/50 px-2 py-1.5 rounded-lg flex justify-between items-center">
+                                <span className="text-[8px] font-mono text-zinc-400 uppercase font-black">Active Sung Note:</span>
+                                <span className="text-[9.5px] font-mono font-black text-amber-400 animate-pulse">
+                                  {formatFlatName(currentPitch.noteName)}{currentPitch.octave} ({currentPitch.frequency.toFixed(0)} Hz)
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         ) : (
-                          <p className="text-zinc-500 leading-snug">
-                            No vocal core captured yet. Go to the <button onClick={() => setActiveTab("tuner")} className="text-[#F27D26] font-bold hover:underline cursor-pointer">Tuner</button> tab and hum/sing notes to dynamically construct your singing scale structure!
-                          </p>
+                          <div className="space-y-2.5">
+                            <p className="text-[10.5px] text-zinc-400 leading-relaxed">
+                              No song key estimate captured yet. Sing/hum your active song melody continuously so the tuner can scan the core registers!
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-center pt-1">
+                              <div className="bg-[#15171C]/90 border border-[#2A2D35]/50 p-2 rounded-lg">
+                                <span className="text-[7.5px] font-mono text-zinc-500 uppercase tracking-widest block mb-0.5">Need Notes</span>
+                                <span className="text-xs font-black text-white font-mono">
+                                  {Math.max(0, 4 - noteEvents.length)} more notes
+                                </span>
+                              </div>
+                              <div className="bg-[#15171C]/90 border border-[#2A2D35]/50 p-2 rounded-lg">
+                                <span className="text-[7.5px] font-mono text-zinc-500 uppercase tracking-widest block mb-0.5">Active Mic Status</span>
+                                <button 
+                                  onClick={() => {
+                                    setActiveTab("tuner");
+                                    if (!isListening) {
+                                      startListeningSession();
+                                    }
+                                  }}
+                                  className={`text-[9px] font-mono font-black uppercase ${isListening ? "text-emerald-400" : "text-[#F27D26] animate-pulse underline"}`}
+                                >
+                                  {isListening ? "Listening" : "Activate mic"}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
