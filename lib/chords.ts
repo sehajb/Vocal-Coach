@@ -394,3 +394,217 @@ export function getCapoSuggestions(
   // Sort primarily by lower capos for finger comfort
   return suggestions.sort((a, b) => a.capoFret - b.capoFret);
 }
+
+// Finger configurations for common open chord voicings and standard finger shapes (1=Index, 2=Middle, 3=Ring, 4=Pinky)
+export const EXPLICIT_FINGERS: Record<string, string> = {
+  // Open C Chords
+  "C": "x32010",
+  "Cmaj7": "x32000",
+  "C7": "x32410",
+  "Csus2": "x10030",
+  "Csus4": "x23014",
+  "Cadd9": "x32040",
+  "Cm": "x13421",
+  "Cm7": "x13121",
+  "Cdim": "x1243x",
+  "C#dim": "x1243x",
+
+  // Open D Chords
+  "D": "xx0132",
+  "Dmaj7": "xx0111",
+  "D7": "xx0213",
+  "Dsus2": "xx0130",
+  "Dsus4": "xx0134",
+  "Dadd9": "xx0142",
+  "Dm": "xx0231",
+  "Dm7": "xx0211",
+  "Ddim": "xx0102",
+  "D#dim": "xx1213",
+
+  // Open E Chords
+  "E": "023100",
+  "Emaj7": "021100",
+  "E7": "020100",
+  "Esus2": "134211",
+  "Esus4": "023400",
+  "Eadd9": "014200",
+  "Em": "023000",
+  "Em7": "020000",
+  "Edim": "xx1324",
+  "Fdim": "xx1324",
+
+  // F Chords
+  "F": "134211",
+  "Fmaj7": "x34210",
+  "F7": "131211",
+  "Fsus2": "x34011",
+  "Fsus4": "134411",
+  "Fadd9": "134011",
+  "Fm": "134111",
+  "Fm7": "131111",
+  "F#dim": "xx1324",
+
+  // F# Chords
+  "F#": "134211",
+  "F#maj7": "132211",
+  "F#7": "131211",
+  "F#sus2": "134111",
+  "F#m": "134111",
+  "F#m7": "131111",
+  "Gdim": "xx1324",
+
+  // Open G Chords
+  "G": "320004",
+  "Gmaj7": "320001",
+  "G7": "320001",
+  "Gsus2": "300044",
+  "Gsus4": "320014",
+  "Gadd9": "210304",
+  "Gm": "134111",
+  "Gm7": "131111",
+  "G#dim": "xx1324",
+
+  // G# Chords
+  "G#": "134211",
+  "G#maj7": "132211",
+  "G#7": "131211",
+  "G#sus2": "134111",
+  "G#m": "134111",
+  "G#m7": "131111",
+  "Adim": "xx1324",
+
+  // Open A Chords
+  "A": "x01230",
+  "Amaj7": "x02130",
+  "A7": "x02030",
+  "Asus2": "x01200",
+  "Asus4": "x01230",
+  "Aadd9": "x01320",
+  "Am": "x02310",
+  "Am7": "x02010",
+  "A#dim": "xx1324",
+
+  // A# / Bb Chords
+  "A#": "x13331",
+  "A#maj7": "x13241",
+  "A#7": "x13131",
+  "A#sus2": "x13411",
+  "A#m": "x13421",
+  "A#m7": "x13121",
+  "Bdim": "xx1324",
+
+  // B Chords
+  "B": "x13331",
+  "Bmaj7": "x13241",
+  "B7": "x21304",
+  "Bsus2": "x13411",
+  "Bsus4": "x13441",
+  "Bm": "x13421",
+  "Bm7": "x13121",
+
+  // Flat aliases
+  "Db": "x13331",
+  "Dbmaj7": "x13241",
+  "Dbm": "x13421",
+  "Dbm7": "x13121",
+  "Eb": "x13331",
+  "Ebmaj7": "x13241",
+  "Ebm": "x13421",
+  "Ebm7": "x13121",
+  "Gb": "134211",
+  "Gbmaj7": "132211",
+  "Gbm": "134111",
+  "Ab": "134211",
+  "Abmaj7": "132211",
+  "Abm": "134111",
+  "Abm7": "131111",
+  "Bb": "x13331",
+  "Bbmaj7": "x13241",
+  "Bbm": "x13421",
+  "Bbm7": "x13121",
+};
+
+// Intelligently lookup finger diagrams or deduce standard barre patterns
+export function getFingersForChord(chordName: string, frets: string): string {
+  if (EXPLICIT_FINGERS[chordName]) {
+    return EXPLICIT_FINGERS[chordName];
+  }
+
+  const normalizedName = chordName.replace("Db", "C#")
+                                 .replace("Eb", "D#")
+                                 .replace("Gb", "F#")
+                                 .replace("Ab", "G#")
+                                 .replace("Bb", "A#");
+
+  if (EXPLICIT_FINGERS[normalizedName]) {
+    return EXPLICIT_FINGERS[normalizedName];
+  }
+
+  const fretChars = frets.split("");
+  const numericFrets = fretChars.map(c => parseInt(c)).filter(v => !isNaN(v));
+  if (numericFrets.length === 0) return frets;
+
+  const minFret = Math.min(...numericFrets.filter(f => f > 0));
+
+  // Pattern A: starts on 6th string, looks like: E A D G B e -> f, f+2, f+2, f+1, f, f
+  if (fretChars[0] !== "x" && fretChars[0] !== "0") {
+    const f0 = parseInt(fretChars[0]);
+    const f1 = parseInt(fretChars[1]);
+    const f2 = parseInt(fretChars[2]);
+    const f3 = parseInt(fretChars[3]);
+    const f4 = parseInt(fretChars[4]);
+    const f5 = parseInt(fretChars[5]);
+
+    // Major barre
+    if (f1 === f0 + 2 && f2 === f0 + 2 && f3 === f0 + 1 && f4 === f0 && f5 === f0) {
+      return "134211";
+    }
+    // Minor barre
+    if (f1 === f0 + 2 && f2 === f0 + 2 && f3 === f0 && f4 === f0 && f5 === f0) {
+      return "134111";
+    }
+  }
+
+  // Pattern B: starts on 5th string (mute 6th), looks like: x, f, f+2, f+2, f+1, f
+  if (fretChars[0] === "x" && fretChars[1] !== "x" && fretChars[1] !== "0") {
+    const f1 = parseInt(fretChars[1]);
+    const f2 = parseInt(fretChars[2]);
+    const f3 = parseInt(fretChars[3]);
+    const f4 = parseInt(fretChars[4]);
+    const f5 = parseInt(fretChars[5]);
+
+    // Minor barre on A string
+    if (f2 === f1 + 2 && f3 === f1 + 2 && f4 === f1 + 1 && f5 === f1) {
+      return "x13421";
+    }
+    // Major barre on A string
+    if (f2 === f1 + 2 && f3 === f1 + 2 && f4 === f1 + 2 && f5 === f1) {
+      return "x13331";
+    }
+  }
+
+  // Fallback heuristic: map by distance relative to lowest fret
+  const result: string[] = [];
+  fretChars.forEach((char) => {
+    if (char === "x") {
+      result.push("x");
+    } else if (char === "0") {
+      result.push("0");
+    } else {
+      const fretVal = parseInt(char);
+      const diff = fretVal - minFret;
+      if (diff === 0) {
+        result.push("1");
+      } else if (diff === 1) {
+        result.push("2");
+      } else if (diff === 2) {
+        result.push("3");
+      } else {
+        result.push("4");
+      }
+    }
+  });
+
+  return result.join("");
+}
+
